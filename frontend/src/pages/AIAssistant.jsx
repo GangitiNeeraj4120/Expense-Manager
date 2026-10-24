@@ -12,7 +12,7 @@ function AIAssistant() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      text: "Hi! I'm your SpendSense assistant. I can help you understand your spending and explore ways to manage your budget. What would you like to know?",
+      text: "Hi! I'm your Expense Manager assistant. I can help you understand your spending and explore ways to manage your budget. What would you like to know?",
     },
   ])
 
@@ -44,7 +44,7 @@ function AIAssistant() {
           onClick={() => setMessages([
             {
               role: 'assistant',
-              text: "Hi! I'm your SpendSense assistant. What would you like to know?",
+              text: "Hi! I'm your Expense Manager assistant. What would you like to know?",
             },
           ])}
         >
@@ -55,7 +55,7 @@ function AIAssistant() {
       <section className="chat-container">
         <div className="chat-status">
           <span className="assistant-avatar"><Bot size={21} /></span>
-          <div><strong>SpendSense AI</strong><span><i /> Demo mode</span></div>
+          <div><strong>Expense-Manager AI</strong><span><i /> Demo mode</span></div>
           <span className="sparkle"><Sparkles size={18} /></span>
         </div>
 
@@ -67,7 +67,7 @@ function AIAssistant() {
               </div>
               <div className="message-content">
                 <span className="message-author">
-                  {message.role === 'assistant' ? 'SpendSense AI' : 'You'}
+                  {message.role === 'assistant' ? 'Expense Manager AI' : 'You'}
                 </span>
                 <div className="message-bubble">{message.text}</div>
               </div>
@@ -99,7 +99,7 @@ function AIAssistant() {
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder="Ask anything about your spending..."
-            aria-label="Message the SpendSense assistant"
+            aria-label="Message the Expense Manager assistant"
           />
           <button type="submit" disabled={!input.trim()} aria-label="Send message">
             <Send size={17} />

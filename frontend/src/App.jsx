@@ -19,7 +19,7 @@ const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard },
   { label: 'AI Assistant', icon: MessageCircle },
   { label: 'Memory Lab', icon: Brain },
-  { label: 'Memory Challenge', icon: Trophy },
+  
 ]
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
     Dashboard: <Dashboard />,
     'AI Assistant': <AIAssistant />,
     'Memory Lab': <MemoryLab />,
-    'Memory Challenge': <MemoryChallenge />,
+    
   }
 
   return (
@@ -38,7 +38,7 @@ function App() {
         <div className="brand">
           <div className="brand-icon"><Wallet size={22} /></div>
           <div>
-            <h2>SpendSense</h2>
+            <h2>Expense-Manager</h2>
             <span>PERSONAL FINANCE</span>
           </div>
         </div>
@@ -54,7 +54,7 @@ function App() {
             >
               <Icon size={19} />
               <span>{label}</span>
-              {label === 'Memory Challenge' && <span className="nav-tag">NEW</span>}
+              
             </button>
           ))}
         </nav>
