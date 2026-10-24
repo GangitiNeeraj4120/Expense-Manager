@@ -1,0 +1,6 @@
+.venv/
+.vscode/
+
+database/*.env
+database/test_*.py
+database/__pycache__/
