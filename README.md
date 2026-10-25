@@ -13,12 +13,7 @@ The project was developed by **Agentic Hackers (Team ID: 732559)** for
 *SpendSense*; the GitHub repository and application name is
 **Expense-Manager**.
 
-> **Project status:** Work in progress. The React frontend and Python
-> agent/database backend are present in the repository, but they are
-> **not integrated end-to-end yet**. Several frontend screens still use
-> local demo data, and the current backend snapshot does not include the
-> FastAPI application entry point/API routes described in the planned
-> architecture.
+> **Project status:** Work in progress. The React frontend, Python backend, and MongoDB database are integrated end-to-end. The frontend communicates with the backend through FastAPI endpoints, enabling transaction management, financial analytics, and AI-powered conversational assistance. The backend uses LangGraph to orchestrate the AI workflow, retrieve relevant financial data, and leverage persistent memories to generate context-aware responses. Further improvements to memory management, security, and financial insights are ongoing.
 
 ## Table of contents
 
