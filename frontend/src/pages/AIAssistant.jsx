@@ -1,34 +1,41 @@
 import { useState } from 'react'
 import { Bot, Send, Sparkles, User, RotateCcw } from 'lucide-react'
+import { sendChatMessage } from '../services/api'
 
 const suggestions = [
   'Where did I spend the most?',
   'How can I save money this month?',
   'Summarise my recent expenses',
 ]
+const greeting = "Hi! I'm your SpendSense assistant. Ask me about your spending, budget, or stored financial patterns."
 
 function AIAssistant() {
   const [input, setInput] = useState('')
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      text: "Hi! I'm your Expense Manager assistant. I can help you understand your spending and explore ways to manage your budget. What would you like to know?",
-    },
-  ])
+  const [loading, setLoading] = useState(false)
+  const [messages, setMessages] = useState([{ role: 'assistant', text: greeting }])
 
-  function sendMessage(text = input) {
+  async function sendMessage(text = input) {
     const trimmed = text.trim()
-    if (!trimmed) return
+    if (!trimmed || loading) return
 
-    setMessages((previous) => [
-      ...previous,
-      { role: 'user', text: trimmed },
-      {
-        role: 'assistant',
-        text: "This is a demo response. Once the backend is connected, I'll be able to analyse your actual expenses and provide personalised insights.",
-      },
-    ])
+    setMessages((previous) => [...previous, { role: 'user', text: trimmed }])
     setInput('')
+    setLoading(true)
+
+    try {
+      const result = await sendChatMessage(trimmed)
+      setMessages((previous) => [...previous, {
+        role: 'assistant',
+        text: result.response || 'The agent did not return a response.',
+      }])
+    } catch (error) {
+      setMessages((previous) => [...previous, {
+        role: 'assistant',
+        text: `Could not contact the backend: ${error.message}. Check that the backend server is running.`,
+      }])
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -39,15 +46,7 @@ function AIAssistant() {
           <h1>AI Assistant</h1>
           <p className="subtitle">Ask questions about your expenses, habits, and budget.</p>
         </div>
-        <button
-          className="chat-reset"
-          onClick={() => setMessages([
-            {
-              role: 'assistant',
-              text: "Hi! I'm your Expense Manager assistant. What would you like to know?",
-            },
-          ])}
-        >
+        <button className="chat-reset" onClick={() => setMessages([{ role: 'assistant', text: greeting }])}>
           <RotateCcw size={15} /> New chat
         </button>
       </div>
@@ -55,57 +54,39 @@ function AIAssistant() {
       <section className="chat-container">
         <div className="chat-status">
           <span className="assistant-avatar"><Bot size={21} /></span>
-          <div><strong>Expense-Manager AI</strong><span><i /> Demo mode</span></div>
+          <div><strong>SpendSense AI</strong><span><i /> Backend connected when server is running</span></div>
           <span className="sparkle"><Sparkles size={18} /></span>
         </div>
 
         <div className="chat-messages">
           {messages.map((message, index) => (
             <div className={`message-row ${message.role}`} key={index}>
-              <div className="message-avatar">
-                {message.role === 'assistant' ? <Bot size={18} /> : <User size={18} />}
-              </div>
+              <div className="message-avatar">{message.role === 'assistant' ? <Bot size={18} /> : <User size={18} />}</div>
               <div className="message-content">
-                <span className="message-author">
-                  {message.role === 'assistant' ? 'Expense Manager AI' : 'You'}
-                </span>
+                <span className="message-author">{message.role === 'assistant' ? 'SpendSense AI' : 'You'}</span>
                 <div className="message-bubble">{message.text}</div>
               </div>
             </div>
           ))}
+          {loading && <div className="message-row assistant"><div className="message-content"><div className="message-bubble">Thinking…</div></div></div>}
         </div>
 
         {messages.length === 1 && (
           <div className="suggested-prompts">
             <p>TRY ASKING</p>
-            <div>
-              {suggestions.map((suggestion) => (
-                <button key={suggestion} onClick={() => sendMessage(suggestion)}>
-                  <Sparkles size={14} /> {suggestion}
-                </button>
-              ))}
-            </div>
+            <div>{suggestions.map((suggestion) => (
+              <button key={suggestion} onClick={() => sendMessage(suggestion)} disabled={loading}>
+                <Sparkles size={14} /> {suggestion}
+              </button>
+            ))}</div>
           </div>
         )}
 
-        <form
-          className="chat-input-area"
-          onSubmit={(event) => {
-            event.preventDefault()
-            sendMessage()
-          }}
-        >
-          <input
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder="Ask anything about your spending..."
-            aria-label="Message the Expense Manager assistant"
-          />
-          <button type="submit" disabled={!input.trim()} aria-label="Send message">
-            <Send size={17} />
-          </button>
+        <form className="chat-input-area" onSubmit={(event) => { event.preventDefault(); sendMessage() }}>
+          <input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ask anything about your spending..." aria-label="Message the SpendSense assistant" />
+          <button type="submit" disabled={!input.trim() || loading} aria-label="Send message"><Send size={17} /></button>
         </form>
-        <p className="chat-disclaimer">Demo responses only · AI insights will be enabled after backend integration.</p>
+        <p className="chat-disclaimer">Responses are generated by your backend AI agent using available financial records and stored memories.</p>
       </section>
     </div>
   )
