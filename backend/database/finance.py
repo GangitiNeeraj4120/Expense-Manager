@@ -1,7 +1,7 @@
 
 from collections import defaultdict
 
-from database import transactions, goals, serialize_document, _parse_date
+from .database import transactions, goals, serialize_document, _parse_date
 
 
 def get_total_spending(start_date=None, end_date=None):

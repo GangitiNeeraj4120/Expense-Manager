@@ -41,7 +41,7 @@ db = client[MONGODB_DATABASE]
 transactions = db["transactions"]
 memories = db["memories"]
 goals = db["goals"]
-
+analysis_state = db["analysis_state"]
 
 def init_db():
     """Verify the connection and create basic indexes."""
@@ -59,7 +59,10 @@ def init_db():
     goals.create_index(
         [("start_date", ASCENDING), ("end_date", ASCENDING)]
     )
-
+    analysis_state.create_index(
+        [("user_id", ASCENDING)],
+        unique=True,
+    )
     return True
 
 
@@ -182,7 +185,7 @@ def save_memory(memory):
         raise ValueError("confidence must be between 0 and 1")
 
     doc = {
-        "category": memory["type"], # type -> category
+        "type": memory["type"], # type -> category
         "condition": str(memory["condition"]),
         "value": str(memory["value"]),
         "source": memory["source"],
@@ -301,53 +304,37 @@ def get_goals( # only has specific goal types, a bit hardcoded
     return [serialize_document(doc) for doc in cursor]
 
 
-def search_memories_vector(
-    query_embedding,
-    limit=5,
-    type=None,
-    status="active",
-    index_name="memory_vector_index",
-):
-    filters = {}
+def get_analysis_state(user_id: str) -> dict | None:
+    """Return the saved financial-analysis state for a user."""
+    document= analysis_state.find_one(
+        {"user_id": user_id}
+    )
+    return(serialize_document(document))
 
-    if type:
-        filters["type"] = {"$eq": type}
+def mark_analysis_success(user_id: str) -> None:
+    """Record a successful financial analysis."""
+    now = datetime.now(timezone.utc)
 
-    if status is not None:
-        filters["status"] = {"$eq": status}
-
-    vector_stage = {
-        "$vectorSearch": {
-            "index": index_name,
-            "path": "embedding",
-            "queryVector": query_embedding,
-            "numCandidates": max(100, limit * 10),
-            "limit": limit,
-        }
-    }
-
-    if filters:
-        vector_stage["$vectorSearch"]["filter"] = filters
-
-    pipeline = [
-        vector_stage,
+    analysis_state.update_one(
+        {"user_id": user_id},
         {
-            "$project": {
-                "_id": 1,
-                "type": 1,
-                "condition": 1,
-                "value": 1,
-                "source": 1,
-                "confidence": 1,
-                "created_at": 1,
-                "status": 1,
-                "score": {"$meta": "vectorSearchScore"},
+            "$set": {
+                "last_successful_analysis_at": now,
+                "last_attempt_at": now,
+                "status": "success",
             }
         },
-    ]
-
-    return [
-        serialize_document(doc)
-        for doc in memories.aggregate(pipeline)
-    ]
-
+        upsert=True,
+    )
+def mark_analysis_failure(user_id: str) -> None:
+    """Record a failed refresh without resetting its success timestamp."""
+    analysis_state.update_one(
+        {"user_id": user_id},
+        {
+            "$set": {
+                "status": "failed",
+                "last_attempt_at": datetime.now(timezone.utc),
+            }
+        },
+        upsert=True,
+    )
