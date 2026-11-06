@@ -12,6 +12,7 @@ const greeting = "Hi! I'm your SpendSense assistant. Ask me about your spending,
 function AIAssistant() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [conversationId, setConversationId] = useState(null)
   const [messages, setMessages] = useState([{ role: 'assistant', text: greeting }])
 
   async function sendMessage(text = input) {
@@ -23,7 +24,10 @@ function AIAssistant() {
     setLoading(true)
 
     try {
-      const result = await sendChatMessage(trimmed)
+      const result = await sendChatMessage(trimmed, conversationId)
+      if (result.conversation_id) {
+        setConversationId(result.conversation_id)
+      }
       setMessages((previous) => [...previous, {
         role: 'assistant',
         text: result.response || 'The agent did not return a response.',
@@ -31,7 +35,7 @@ function AIAssistant() {
     } catch (error) {
       setMessages((previous) => [...previous, {
         role: 'assistant',
-        text: `Could not contact the backend: ${error.message}. Check that the backend server is running.`,
+        text: `Request failed: ${error.message || 'Could not contact the backend.'}`,
       }])
     } finally {
       setLoading(false)
@@ -46,7 +50,16 @@ function AIAssistant() {
           <h1>AI Assistant</h1>
           <p className="subtitle">Ask questions about your expenses, habits, and budget.</p>
         </div>
-        <button className="chat-reset" onClick={() => setMessages([{ role: 'assistant', text: greeting }])}>
+        <button
+          className="chat-reset"
+          onClick={() => {
+            if (loading) return
+            setMessages([{ role: 'assistant', text: greeting }])
+            setConversationId(null)
+            setInput('')
+          }}
+          disabled={loading}
+        >
           <RotateCcw size={15} /> New chat
         </button>
       </div>

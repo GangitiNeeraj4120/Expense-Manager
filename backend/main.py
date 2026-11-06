@@ -2,6 +2,7 @@
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from typing import Literal
+from uuid import uuid4
 
 from bson import ObjectId
 from fastapi import FastAPI, HTTPException
@@ -132,13 +133,31 @@ def dashboard_summary():
 class ChatRequest(BaseModel):
     user_id: str = USER_ID_DEFAULT
     message: str = Field(min_length=1, max_length=4000)
+    conversation_id: str | None = None
 
 
 @app.post("/api/assistant/chat")
 def assistant_chat(payload: ChatRequest):
     try:
-        result = get_graph().invoke({"user_id": payload.user_id, "message": payload.message})
-        return {"response": result.get("answer", "I couldn't generate a response.")}
+        conversation_id = (
+            payload.conversation_id.strip()
+            if payload.conversation_id and payload.conversation_id.strip()
+            else str(uuid4())
+        )
+        config = {
+            "configurable": {
+                "thread_id": conversation_id,
+                "user_id": payload.user_id,
+            }
+        }
+        result = get_graph().invoke(
+            {"user_id": payload.user_id, "message": payload.message},
+            config=config,
+        )
+        return {
+            "response": result.get("answer", "I couldn't generate a response."),
+            "conversation_id": conversation_id,
+        }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Agent request failed: {exc}") from exc
 

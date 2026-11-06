@@ -164,7 +164,9 @@ def build_graph():
         if not message:
             return {"answer": "Please enter a message."}
 
-        # Start this invocation with a fresh message history.
+        # add_messages appends this HumanMessage to the checkpointed history,
+        # so the graph keeps prior context without replacing it or duplicating
+        # messages from the frontend.
         return {"messages": [HumanMessage(content=message)]}
     
     def generate_answer(state: AgentState) -> dict:
@@ -209,4 +211,3 @@ def build_graph():
 
     checkpointer = InMemorySaver()
     return builder.compile(checkpointer=checkpointer)
-
