@@ -21,10 +21,14 @@ export function getDashboardData() {
   return request('/api/dashboard/summary');
 }
 
-export function sendChatMessage(message) {
+export function sendChatMessage(message, conversationId = null) {
   return request('/api/assistant/chat', {
     method: 'POST',
-    body: JSON.stringify({ user_id: USER_ID, message }),
+    body: JSON.stringify({
+      user_id: USER_ID,
+      message,
+      conversation_id: conversationId,
+    }),
   });
 }
 
